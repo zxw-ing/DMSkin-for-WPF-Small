@@ -1,7 +1,10 @@
 # DMSkin-for-WPF 1.0
 <h1>1.0版本不再更新</h1>
-基于WPF的UI框架
+<h4>基于WPF的UI框架</h4>
+<h4>支持：.NET Framework 3.5 - 4.7</h4>
+<h4>支持：Windows XP - Windows 10</h4>
 
+<hr/>
 
 <h1>前言</h1>
 
