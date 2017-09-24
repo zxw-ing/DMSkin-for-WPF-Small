@@ -27,8 +27,5 @@ WindowStartupLocation="CenterScreen">
         <Border.Background>
             <ImageBrush ImageSource="/DMSkin.WPF.DEMO;component/Images/BG.jpg"/>
         </Border.Background>
-        <Grid>
-            <ResizeGrip HorizontalAlignment="Right" VerticalAlignment="Bottom"></ResizeGrip>
-        </Grid>
     </Border>
     </DMSkin:DMSkinWindow>

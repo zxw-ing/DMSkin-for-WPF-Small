@@ -196,7 +196,7 @@ namespace DMSkin.WPF
         /// <summary>  
         /// 圆角拖动大小 
         /// </summary>  
-        private readonly int cornerWidth = 8;
+        private readonly int cornerWidth = 32;
 
         /// <summary>  
         /// 拉伸鼠标坐标 
@@ -240,11 +240,11 @@ namespace DMSkin.WPF
                 { // 右下 
                     return HTBOTTOMRIGHT;
                 }
-                else if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= 4 && Math.Abs(this.mousePoint.Y - this.Top) > DMSystemButtonSize)
+                else if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= 24 && Math.Abs(this.mousePoint.Y - this.Top) > DMSystemButtonSize)
                 { // 右  
                     return HTRIGHT;
                 }
-                else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= 4)
+                else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= 24)
                 { // 底部  
                     return HTBOTTOM;
                 }

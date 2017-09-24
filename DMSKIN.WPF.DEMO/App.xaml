@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnMainWindowClose"
              xmlns:local="clr-namespace:DMSkin.WPF.DEMO"
-             StartupUri="MainWindow.xaml">
+             StartupUri="Windows/ImageWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
