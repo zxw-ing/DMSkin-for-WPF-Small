@@ -87,8 +87,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Window}">
-                    <Grid Name="WindowBorder" Background="{TemplateBinding Background}">
-                        <ContentPresenter />
+                    <Grid Name="WindowBorder" Margin="{Binding DMWindowShadowSize}" >
+                        <Rectangle  Fill="White">
+                            <Rectangle.Effect>
+                                <DropShadowEffect BlurRadius="{Binding DMWindowShadowSize}" ShadowDepth="0" Color="{Binding DMWindowShadowColor}"/>
+                            </Rectangle.Effect>
+                        </Rectangle>
+                        <Border 
+                            Panel.ZIndex="0"
+                            Name="MyBorder"
+                            BorderBrush="{TemplateBinding BorderBrush}"  
+                            BorderThickness="{TemplateBinding BorderThickness}"  
+                            Padding="{TemplateBinding Margin}"  
+                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                            <ContentPresenter />
+                        </Border>
                         <StackPanel Height="{Binding DMSystemButtonSize}" Orientation="Horizontal" Grid.Column="2" VerticalAlignment="Top" HorizontalAlignment="Right">
                             <Button x:Name="PART_Min"
                                 Focusable="False"

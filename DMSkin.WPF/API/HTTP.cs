@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// DMSkin专用HTTP封装类
 /// </summary>
-namespace DM_Studio
+namespace DMSkin.WPF
 {
     #region 服务器配置
     public class ServicePath
@@ -189,9 +189,7 @@ namespace DM_Studio
                 retString = myStreamReader.ReadToEnd();
                 //后开先关
                 myStreamReader.Close();
-                myStreamReader.Dispose();
                 myResponseStream.Close();
-                myResponseStream.Dispose();
             }
             return retString;
         }
@@ -287,7 +285,6 @@ namespace DM_Studio
                     //string fileNameTime = DateTime.Now.ToString("yyyyMMddhhmmss");
                     string name = Directory.GetCurrentDirectory() + "\\images\\" + fileNameTime + ".jpg";
                     wb.DownloadFile(imageUrl, name);
-                    wb.Dispose();
                     //初始化图片地址
                     action(name);
                 }

@@ -1,11 +1,8 @@
-﻿using DMSkin.WPF.Enumerations;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,14 +11,10 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using static DMSkin.WPF.DMSkinWindow;
 
 namespace DMSkin.WPF
 {
-    /// <summary>
-    /// 主窗体基类
-    /// </summary>
-    public partial class DMSkinWindow:Window,INotifyPropertyChanged
+    public partial class DMSkinWindow : Window, INotifyPropertyChanged
     {
         #region UI更新接口
         public event PropertyChangedEventHandler PropertyChanged;
@@ -33,46 +26,109 @@ namespace DMSkin.WPF
         #endregion
 
         #region 初始化
+
+        /// <summary>
+        /// 窗口模式
+        /// </summary>
+        private WindowMode DMWindowMode = WindowMode.Auto;
+
+
         public DMSkinWindow()
         {
-            AllowsTransparency = true;
-            WindowStyle = WindowStyle.None;
-            InitializeStyle();
             DataContext = this;
-            BindFunc();
-            Loaded += new RoutedEventHandler(DMLoad);
-        }
+            //开启窗口模式
+            OpenWindowMode();
 
-        
-        private void DMLoad(object sender, RoutedEventArgs e)
+            //绑定窗体操作函数
+            SourceInitialized += MainWindow_SourceInitialized;
+            StateChanged += MainWindow_StateChanged;
+            MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+            
+
+            //双层才需要绑定这些事件
+            if (DMWindowMode==WindowMode.TwoWindow)
+            {
+                Closing += MainWindow_Closing;
+                SizeChanged += MainWindow_SizeChanged;
+                LocationChanged += MainWindow_LocationChanged;
+            }
+            
+        }
+        #endregion
+
+        #region 切换单双窗口模式
+
+        private void OpenWindowMode()
         {
-            WindowBorder = (Grid)Template.FindName("WindowBorder", this);
+            ReadWindowMode();
+            //根据系统加载模式
+            if (DMWindowMode==WindowMode.Auto)
+            {
+                Version vs = Environment.OSVersion.Version;
+                Version compareToVersion = new Version("6.2");
+                //WIN8+
+                if (vs >= compareToVersion)
+                {
+                    //OS版本号的主要版本号  
+                    //Debug.WriteLine("Major:{0}", vs.Major + "." + vs.Minor);
+                    DMWindowMode = WindowMode.TwoWindow;
+                }
+                //WIN7-
+                else
+                {
+                    DMWindowMode = WindowMode.OneWindow;
+                }
+            }
 
-            Button btnClose = (Button)Template.FindName("PART_Close", this);
-            btnClose.Click += delegate
+            if (DMWindowMode == WindowMode.OneWindow)
             {
-                Close();
-            };
-            Button btnMax = (Button)Template.FindName("PART_Max", this);
-            btnMax.Click += delegate
+                AllowsTransparency = true;
+                WindowStyle = WindowStyle.None;
+                Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0));
+                InitializeWindowStyle(OnepackUri);
+            }
+            else if (DMWindowMode == WindowMode.TwoWindow)
             {
-                WindowState = WindowState.Maximized;
-            };
-            Button btnRestore = (Button)Template.FindName("PART_Restore", this);
-            btnRestore.Click += delegate
-            {
-                WindowState = WindowState.Normal;
-            };
-            Button btnMin = (Button)Template.FindName("PART_Min", this);
-            btnMin.Click += delegate
-            {
-                WindowMini();
-            };
+                _shadowWindow = new ShadowWindow();
+                ShadowWindowVisibility(true);//初始化
+                Owner = _shadowWindow;//绑定阴影窗体
+                InitializeWindowStyle(TwopackUri);
+            }
         }
 
-    
-        Style MainWindowShadow;
-        Style MainWindowMetro;
+        /// <summary>
+        /// 读取窗口模式
+        /// </summary>
+        private void ReadWindowMode()
+        {
+            string Path = "WindowMode.Config";
+            if (File.Exists(Path))
+            {
+                string temp = File.ReadAllText(Path);
+                if (temp == "OneWindow")
+                {
+                    DMWindowMode = WindowMode.OneWindow;
+                    return;
+                }
+                else if (temp == "TwoWindow")
+                {
+                    DMWindowMode = WindowMode.TwoWindow;
+                    return;
+                }
+            }
+            DMWindowMode = WindowMode.Auto;
+        }
+
+        /// <summary>
+        /// 单层窗口的样式
+        /// </summary>
+        string OnepackUri = @"/DMSkin.WPF;component/Themes/DMSkinOne.xaml";
+
+        /// <summary>
+        /// 双层窗口的样式
+        /// </summary>
+        string TwopackUri = @"/DMSkin.WPF;component/Themes/DMSkin.xaml";
+
         /// <summary>
         /// 慢慢显示的动画
         /// </summary>
@@ -82,70 +138,88 @@ namespace DMSkin.WPF
         /// </summary>
         Storyboard StoryboardSlowHide;
 
-        private void InitializeStyle()
+        /// <summary>
+        /// 加载双层窗口的样式
+        /// </summary>
+        private void InitializeWindowStyle(string packUri)
         {
-            string packUri = @"/DMSkin.WPF;component/Themes/DMSkin.xaml";
             ResourceDictionary dic = new ResourceDictionary { Source = new Uri(packUri, UriKind.Relative) };
-            this.Resources.MergedDictionaries.Add(dic);
+            Resources.MergedDictionaries.Add(dic);
+            Style = (Style)dic["MainWindow"];
 
-            string packUriAnimation = @"/DMSkin.WPF;component/Themes/Animation.xaml";
-            ResourceDictionary dicAnimation = new ResourceDictionary { Source = new Uri(packUriAnimation, UriKind.Relative) };
-            this.Resources.MergedDictionaries.Add(dicAnimation);
+            if (DMWindowMode == WindowMode.OneWindow)//单层窗口读取XAML动画
+            {
+                string packUriAnimation = @"/DMSkin.WPF;component/Themes/Animation.xaml";
+                ResourceDictionary dicAnimation = new ResourceDictionary { Source = new Uri(packUriAnimation, UriKind.Relative) };
+                this.Resources.MergedDictionaries.Add(dicAnimation);
 
-            MainWindowShadow = this.Style = (Style)dic["MainWindow"];
-            MainWindowMetro = (Style)dic["MainWindowMetro"];
-
-            StoryboardSlowShow = (Storyboard)this.FindResource("SlowShow");
-            StoryboardSlowHide = (Storyboard)this.FindResource("SlowHide");
+                StoryboardSlowShow = (Storyboard)FindResource("SlowShow");
+                StoryboardSlowHide = (Storyboard)FindResource("SlowHide");
+            }
+            //绑定按钮
+            BindingButton();
         }
         #endregion
 
-        #region 窗体操作函数
-        //绑定
-        private void BindFunc()
+        #region 绑定系统按钮事件
+        Button btnClose;
+        Button btnMax;
+        Button btnRestore;
+        Button btnMin;
+        /// <summary>
+        /// 系统边框
+        /// </summary>
+        Grid WindowBorder;
+        public void BindingButton()
         {
-            //绑定窗体操作函数
-            this.SourceInitialized += MainWindow_SourceInitialized;
-            this.StateChanged += MainWindow_StateChanged;
-            this.MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
-        }
-
-        //边框
-        private Grid WindowBorder;
-
-        //WIN32 互操作
-        void MainWindow_SourceInitialized(object sender, EventArgs e)
-        {
-            HwndSource source = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
-            if (source == null)
-            { throw new Exception("Cannot get HwndSource instance."); }
-            source.AddHook(new HwndSourceHook(this.WndProc));
-        }
-
-        //消息
-        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-        {
-            switch (msg)
+            Task.Factory.StartNew(() =>
             {
-                case Win32.WM_GETMINMAXINFO: // WM_GETMINMAXINFO message  
-                    WmGetMinMaxInfo(hwnd, lParam);
-                    handled = true;
-                    break;
-                case Win32.WM_SYSCOMMAND:
-                    if (wParam.ToInt32() == Win32.SC_MINIMIZE)//最小化消息
+                while (true)
+                {
+                    Thread.Sleep(300);
+                    btnClose = (Button)Template.FindName("PART_Close", this);
+                    btnMax = (Button)Template.FindName("PART_Max", this);
+                    btnRestore = (Button)Template.FindName("PART_Restore", this);
+                    btnMin = (Button)Template.FindName("PART_Min", this);
+                    WindowBorder = (Grid)Template.FindName("WindowBorder", this);
+                    if (btnClose != null && btnMax != null && btnRestore != null && btnMin != null)
                     {
-                        WindowMini();//执行最小化动画
-                        handled = true;
+                        btnClose.Click += delegate
+                        {
+                            Close();
+                        };
+                        btnMax.Click += delegate
+                        {
+                            WindowState = WindowState.Maximized;
+                        };
+                        btnRestore.Click += delegate
+                        {
+                            WindowState = WindowState.Normal;
+                        };
+                        //单层启动XAML动画
+                        if (DMWindowMode == WindowMode.OneWindow)
+                        {
+                            btnMin.Click += delegate
+                            {
+                                WindowMini();
+                            };
+                        }
+                        //双层直接最小化
+                        else
+                        {
+                            btnMin.Click += delegate
+                            {
+                                WindowState = WindowState.Minimized;
+                            };
+                        }
+                        break;
                     }
-                    if (wParam.ToInt32() == Win32.SC_RESTORE)//恢复消息
-                    {
-                        WindowRestore();//执行恢复动画
-                    }
-                    break;
-            }
-            return IntPtr.Zero;
+                }
+            });
         }
+        #endregion
 
+        #region XAML动画
         /// <summary>
         /// 执行最小化窗体
         /// </summary>
@@ -170,8 +244,185 @@ namespace DMSkin.WPF
             //启动最小化动画
             StoryboardSlowShow.Begin(this);
         }
+        #endregion
 
+        #region 阴影窗体
+        /// <summary>
+        /// 显示或者隐藏阴影
+        /// </summary>
+        private void ShadowWindowVisibility(bool show)
+        {
+            if (_shadowWindow == null)
+            {
+                return;
+            }
+            if (show)
+            {
+                _shadowWindow.Show();
+            }
+            else
+            {
+                _shadowWindow.Hide();
+            }
+        }
 
+        /// <summary>
+        /// 阴影窗体
+        /// </summary>
+        ShadowWindow _shadowWindow = null;
+        /// <summary>
+        /// 窗体关闭时 关闭阴影窗口
+        /// </summary>
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            if (_shadowWindow != null)
+            {
+                _shadowWindow.Close();
+            }
+        }
+
+        /// <summary>
+        /// 主窗体修改尺寸时 更新阴影窗口尺寸
+        /// </summary>
+        private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (_shadowWindow != null)
+            {
+                _shadowWindow.Width = Width + 60;
+                _shadowWindow.Height = Height + 60;
+            }
+        }
+
+        /// <summary>
+        /// 窗体移动坐标时 更新阴影窗口坐标
+        /// </summary>
+        private void MainWindow_LocationChanged(object sender, EventArgs e)
+        {
+            if (_shadowWindow != null)
+            {
+                _shadowWindow.Left = Left - 30;
+                _shadowWindow.Top = Top - 30;
+            }
+        }
+        #endregion
+
+        #region 系统函数
+
+        IntPtr Handle = IntPtr.Zero;
+        void MainWindow_SourceInitialized(object sender, EventArgs e)
+        {
+            Handle = new WindowInteropHelper(this).Handle;
+            HwndSource source = HwndSource.FromHwnd(Handle);
+            if (source == null)
+            { throw new Exception("Cannot get HwndSource instance."); }
+            source.AddHook(new HwndSourceHook(this.WndProc));
+        }
+        IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch (msg)
+            {
+                //获取窗口的最大化最小化信息
+                case Win32.WM_GETMINMAXINFO:
+                    //单层窗口 启用
+                    if (DMWindowMode == WindowMode.OneWindow)
+                    {
+                        WmGetMinMaxInfo(hwnd, lParam);
+                        handled = true;
+                    }
+                    break;
+                case Win32.WM_NCHITTEST:
+                    return WmNCHitTest(lParam, ref handled);
+
+                case Win32.WM_SYSCOMMAND:
+                    //单层窗口 启用XAML动画
+                    if (DMWindowMode == WindowMode.OneWindow)
+                    {
+                        if (wParam.ToInt32() == Win32.SC_MINIMIZE)//最小化消息
+                        {
+                            WindowMini();//执行最小化动画
+                            handled = true;
+                        }
+                        if (wParam.ToInt32() == Win32.SC_RESTORE)//恢复消息
+                        {
+                            WindowRestore();//执行恢复动画
+                        }
+                    }
+                    break;
+                case Win32.WM_NCPAINT:
+                    break;
+                case Win32.WM_NCCALCSIZE:
+                    handled = true;
+                    break;
+                case Win32.WM_NCUAHDRAWCAPTION:
+                case Win32.WM_NCUAHDRAWFRAME:
+                    handled = true;
+                    break;
+                case Win32.WM_NCACTIVATE:
+                    if (wParam == (IntPtr)Win32.WM_TRUE)
+                    {
+                        handled = true;
+                    }
+                    break;
+            }
+            return IntPtr.Zero;
+        }
+
+        /// <summary>  
+        /// 圆角拖动大小 
+        /// </summary>  
+        private readonly int cornerWidth = 8;
+
+        /// <summary>  
+        /// 拉伸鼠标坐标 
+        /// </summary>  
+        private Point mousePoint = new Point();
+        private IntPtr WmNCHitTest(IntPtr lParam, ref bool handled)
+        {
+            this.mousePoint.X = (int)(short)(lParam.ToInt32() & 0xFFFF);
+            this.mousePoint.Y = (int)(short)(lParam.ToInt32() >> 16);
+            if (ResizeMode == ResizeMode.CanResize || ResizeMode == ResizeMode.CanResizeWithGrip)
+            {
+                handled = true;
+                //if (Math.Abs(this.mousePoint.Y - this.Top) <= this.cornerWidth
+                //    && Math.Abs(this.mousePoint.X - this.Left) <= this.cornerWidth)
+                //{ // 左上 
+                //    return new IntPtr((int)Win32.HitTest.HTTOPLEFT);
+                //}
+                //else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= this.cornerWidth
+                //    && Math.Abs(this.mousePoint.X - this.Left) <= this.cornerWidth)
+                //{ // 左下  
+                //    return new IntPtr((int)Win32.HitTest.HTBOTTOMLEFT);
+                //}
+                //else if (Math.Abs(this.mousePoint.Y - this.Top) <= this.cornerWidth
+                //    && Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= this.cornerWidth)
+                //{ //右上
+                //    return new IntPtr((int)Win32.HitTest.HTTOPRIGHT);
+                //}
+                //else if (Math.Abs(this.mousePoint.X - this.Left) <= 30)
+                //{ // 左侧边框
+                //    return new IntPtr((int)Win32.HitTest.HTLEFT);
+                //}
+                //else if (Math.Abs(this.mousePoint.Y - this.Top) <= 30)
+                //{ // 顶部  
+                //    return new IntPtr((int)Win32.HitTest.HTTOP);
+                //}
+                if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= this.cornerWidth
+                    && Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= this.cornerWidth)
+                { // 右下 
+                    return new IntPtr((int)Win32.HitTest.HTBOTTOMRIGHT);
+                }
+                else if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= 4 && Math.Abs(this.mousePoint.Y - this.Top) > DMSystemButtonSize)
+                { // 右  
+                    return new IntPtr((int)Win32.HitTest.HTRIGHT);
+                }
+                else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= 4)
+                { // 底部  
+                    return new IntPtr((int)Win32.HitTest.HTBOTTOM);
+                }
+            }
+            handled = false;
+            return IntPtr.Zero;
+        }
 
         //最大最小化信息
         void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
@@ -180,15 +431,14 @@ namespace DMSkin.WPF
             Win32.MINMAXINFO mmi = (Win32.MINMAXINFO)Marshal.PtrToStructure(lParam, typeof(Win32.MINMAXINFO));
 
             // Get handle for nearest monitor to this window  
-            WindowInteropHelper wih = new WindowInteropHelper(this);
-            IntPtr hMonitor = Win32.MonitorFromWindow(wih.Handle, Win32.MONITOR_DEFAULTTONEAREST);
+            IntPtr hMonitor = Win32.MonitorFromWindow(Handle, Win32.MONITOR_DEFAULTTONEAREST);
 
             // Get monitor info   显示屏
             Win32.MONITORINFOEX monitorInfo = new Win32.MONITORINFOEX();
 
             monitorInfo.cbSize = Marshal.SizeOf(monitorInfo);
             Win32.GetMonitorInfo(new HandleRef(this, hMonitor), monitorInfo);
-            
+
             // Convert working area  
             Win32.RECT workingArea = monitorInfo.rcWork;
 
@@ -202,7 +452,7 @@ namespace DMSkin.WPF
             mmi.ptMaxPosition.y = workingArea.Top;
 
             // Get HwndSource  
-            HwndSource source = HwndSource.FromHwnd(wih.Handle);
+            HwndSource source = HwndSource.FromHwnd(Handle);
             if (source == null)
                 // Should never be null  
                 throw new Exception("Cannot get HwndSource instance.");
@@ -240,10 +490,13 @@ namespace DMSkin.WPF
             Marshal.StructureToPtr(mmi, lParam, true);
         }
 
+
+        //阴影加载状态
+        bool shadowWindowState = false;
         //窗体最大化 隐藏阴影
         void MainWindow_StateChanged(object sender, EventArgs e)
         {
-            //WindowBorder 窗体边框
+            //最大化
             if (WindowState == WindowState.Maximized)
             {
                 if (DMShowMax)
@@ -251,8 +504,18 @@ namespace DMSkin.WPF
                     BtnMaxVisibility = Visibility.Collapsed;
                     BtnRestoreVisibility = Visibility.Visible;
                 }
-                WindowBorder.Margin = new Thickness(0);
+                //单层模式 最大化去除边框
+                if (DMWindowMode == WindowMode.OneWindow)
+                {
+                    WindowBorder.Margin = new Thickness(0);
+                }
+                //双层最大化-隐藏阴影
+                else
+                {
+                    ShadowWindowVisibility(false);
+                }
             }
+            //默认大小
             if (WindowState == WindowState.Normal)
             {
                 if (DMShowMax)
@@ -260,258 +523,53 @@ namespace DMSkin.WPF
                     BtnMaxVisibility = Visibility.Visible;
                     BtnRestoreVisibility = Visibility.Collapsed;
                 }
-                WindowBorder.Margin = new Thickness(DMWindowShadowSize);
+                //单层开启边框
+                if (DMWindowMode == WindowMode.OneWindow)
+                {
+                    WindowBorder.Margin = new Thickness(DMWindowShadowSize);
+                }
+                //双层开启阴影
+                else
+                {
+                    if (shadowWindowState)
+                    {
+                        return;
+                    }
+                    shadowWindowState = true;
+                    Task.Factory.StartNew(() =>
+                    {
+                        Thread.Sleep(200);
+                        Dispatcher.Invoke(new Action(() =>
+                        {
+                            //恢复-显示阴影
+                            ShadowWindowVisibility(true);
+                            shadowWindowState = false;
+                            //激活当前窗口
+                            Activate();
+                            //Debug.Write(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+                        }));
+                    });
+                }
+            }
+            //最小化-隐藏阴影
+            if (WindowState == WindowState.Minimized)
+            {
+                if (DMWindowMode == WindowMode.TwoWindow)
+                {
+                    ShadowWindowVisibility(false);
+                }
             }
         }
-
         //窗体移动
         void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is Grid g)
+            if (e.OriginalSource is Grid || e.OriginalSource is Window || e.OriginalSource is Border)
             {
-                if (g.Tag is string s && s == "NoMove")
-                {
-                    return;
-                }
-            }
-            if (e.OriginalSource is Border b)
-            {
-                if (b.Tag is string s && s== "NoMove")
-                {
-                    return;
-                }
-            }
-            if (e.OriginalSource is Grid || e.OriginalSource is Window|| e.OriginalSource is Border)
-            {
-                WindowInteropHelper wih = new WindowInteropHelper(this);
-                Win32.SendMessage(wih.Handle, Win32.WM_NCLBUTTONDOWN, (int)Win32.HitTest.HTCAPTION, 0);
+                Win32.SendMessage(Handle, Win32.WM_NCLBUTTONDOWN, (int)Win32.HitTest.HTCAPTION, 0);
                 return;
             }
         }
 
-        public class Win32
-        {
-            // Sent to a window when the size or position of the window is about to change
-            //发送到一个窗口时，窗口的大小和位置变化有关
-            public const int WM_GETMINMAXINFO = 0x0024;
-            /// <summary>
-            /// 系统操作
-            /// </summary>
-            public const int WM_SYSCOMMAND = 0x112;
-            /// <summary>
-            /// 最小化
-            /// </summary>
-            public const int SC_MINIMIZE = 0xF020;
-            /// <summary>
-            /// 恢复
-            /// </summary>
-            public const int SC_RESTORE = 0xF120;
-
-            // Retrieves a handle to the display monitor that is nearest to the window  
-            //检索到靠近窗口的显示监视器的处理
-            public const int MONITOR_DEFAULTTONEAREST = 2;
-
-            // Retrieves a handle to the display monitor  
-            [DllImport("user32.dll")]
-            public static extern IntPtr MonitorFromWindow(IntPtr hwnd, int dwFlags);
-
-            // RECT structure, Rectangle used by MONITORINFOEX  
-            [StructLayout(LayoutKind.Sequential)]
-            public struct RECT
-            {
-                public int Left;
-                public int Top;
-                public int Right;
-                public int Bottom;
-            }
-
-            // MONITORINFOEX structure, Monitor information used by GetMonitorInfo function  
-            [StructLayout(LayoutKind.Sequential)]
-            public class MONITORINFOEX
-            {
-                public int cbSize;
-                public RECT rcMonitor; // The display monitor rectangle  
-                public RECT rcWork; // The working area rectangle  
-                public int dwFlags;
-                [MarshalAs(UnmanagedType.ByValArray, SizeConst = 0x20)]
-                public char[] szDevice;
-            }
-
-            // Point structure, Point information used by MINMAXINFO structure  
-            [StructLayout(LayoutKind.Sequential)]
-            public struct POINT
-            {
-                public int x;
-                public int y;
-
-                public POINT(int x, int y)
-                {
-                    this.x = x;
-                    this.y = y;
-                }
-            }
-
-            // MINMAXINFO structure, Window's maximum size and position information  
-            [StructLayout(LayoutKind.Sequential)]
-            public struct MINMAXINFO
-            {
-                public POINT ptReserved;
-                public POINT ptMaxSize; // The maximized size of the window  
-                public POINT ptMaxPosition; // The position of the maximized window  
-                public POINT ptMinTrackSize;
-                public POINT ptMaxTrackSize;
-            }
-
-            // Get the working area of the specified monitor  
-            [DllImport("user32.dll")]
-            public static extern bool GetMonitorInfo(HandleRef hmonitor, [In, Out] MONITORINFOEX monitorInfo);
-
-            // Sent to a window in order to determine what part of the window corresponds to a particular screen coordinate  
-            public const int WM_NCHITTEST = 0x0084;
-
-            /// <summary>  
-            /// Indicates the position of the cursor hot spot.  
-            /// </summary>  
-            public enum HitTest : int
-            {
-                /// <summary>  
-                /// On the screen background or on a dividing line between windows (same as HTNOWHERE, except that the DefWindowProc function produces a system beep to indicate an error).  
-                /// </summary>  
-                HTERROR = -2,
-
-                /// <summary>  
-                /// In a window currently covered by another window in the same thread (the message will be sent to underlying windows in the same thread until one of them returns a code that is not HTTRANSPARENT).  
-                /// </summary>  
-                HTTRANSPARENT = -1,
-
-                /// <summary>  
-                /// On the screen background or on a dividing line between windows.  
-                /// </summary>  
-                HTNOWHERE = 0,
-
-                /// <summary>  
-                /// In a client area.  
-                /// </summary>  
-                HTCLIENT = 1,
-
-                /// <summary>  
-                /// In a title bar.  
-                /// </summary>  
-                HTCAPTION = 2,
-
-                /// <summary>  
-                /// In a window menu or in a Close button in a child window.  
-                /// </summary>  
-                HTSYSMENU = 3,
-
-                /// <summary>  
-                /// In a size box (same as HTSIZE).  
-                /// </summary>  
-                HTGROWBOX = 4,
-
-                /// <summary>  
-                /// In a size box (same as HTGROWBOX).  
-                /// </summary>  
-                HTSIZE = 4,
-
-                /// <summary>  
-                /// In a menu.  
-                /// </summary>  
-                HTMENU = 5,
-
-                /// <summary>  
-                /// In a horizontal scroll bar.  
-                /// </summary>  
-                HTHSCROLL = 6,
-
-                /// <summary>  
-                /// In the vertical scroll bar.  
-                /// </summary>  
-                HTVSCROLL = 7,
-
-                /// <summary>  
-                /// In a Minimize button.  
-                /// </summary>  
-                HTMINBUTTON = 8,
-
-                /// <summary>  
-                /// In a Minimize button.  
-                /// </summary>  
-                HTREDUCE = 8,
-
-                /// <summary>  
-                /// In a Maximize button.  
-                /// </summary>  
-                HTMAXBUTTON = 9,
-
-                /// <summary>  
-                /// In a Maximize button.  
-                /// </summary>  
-                HTZOOM = 9,
-
-                /// <summary>  
-                /// In the left border of a resizable window (the user can click the mouse to resize the window horizontally).  
-                /// </summary>  
-                HTLEFT = 10,
-
-                /// <summary>  
-                /// In the right border of a resizable window (the user can click the mouse to resize the window horizontally).  
-                /// </summary>  
-                HTRIGHT = 11,
-
-                /// <summary>  
-                /// In the upper-horizontal border of a window.  
-                /// </summary>  
-                HTTOP = 12,
-
-                /// <summary>  
-                /// In the upper-left corner of a window border.  
-                /// </summary>  
-                HTTOPLEFT = 13,
-
-                /// <summary>  
-                /// In the upper-right corner of a window border.  
-                /// </summary>  
-                HTTOPRIGHT = 14,
-
-                /// <summary>  
-                /// In the lower-horizontal border of a resizable window (the user can click the mouse to resize the window vertically).  
-                /// </summary>  
-                HTBOTTOM = 15,
-
-                /// <summary>  
-                /// In the lower-left corner of a border of a resizable window (the user can click the mouse to resize the window diagonally).  
-                /// </summary>  
-                HTBOTTOMLEFT = 16,
-
-                /// <summary>  
-                /// In the lower-right corner of a border of a resizable window (the user can click the mouse to resize the window diagonally).  
-                /// </summary>  
-                HTBOTTOMRIGHT = 17,
-
-                /// <summary>  
-                /// In the border of a window that does not have a sizing border.  
-                /// </summary>  
-                HTBORDER = 18,
-
-                /// <summary>  
-                /// In a Close button.  
-                /// </summary>  
-                HTCLOSE = 20,
-
-                /// <summary>  
-                /// In a Help button.  
-                /// </summary>  
-                HTHELP = 21,
-            };
-
-            // Posted when the user presses the left mouse button while the cursor is within the nonclient area of a window  
-            public const int WM_NCLBUTTONDOWN = 0x00A1;
-
-            // Sends the specified message to a window or windows  
-            [DllImport("user32.dll", EntryPoint = "SendMessage")]
-            public static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
-        }
         #endregion
 
         #region 窗体属性
@@ -534,68 +592,10 @@ namespace DMSkin.WPF
         }
 
 
-        private DMWindow dmDMWindow = DMWindow.Shadow;
-        [Description("窗体类型"), Category("DMSkin")]
-        public DMWindow DMWindow
-        {
-            get
-            {
-                return dmDMWindow;
-            }
-
-            set
-            {
-                dmDMWindow = value;
-                if (dmDMWindow == DMWindow.Shadow)//阴影
-                {
-                    this.Style = MainWindowShadow;
-                }
-                else
-                {
-                    this.Style = MainWindowMetro;
-                }
-                OnPropertyChanged("DMWindow");
-            }
-        }
-
-        private int _DMWindowShadowSize = 10;
-        [Description("窗体阴影大小"), Category("DMSkin")]
-        public int DMWindowShadowSize
-        {
-            get
-            {
-                return _DMWindowShadowSize;
-            }
-
-            set
-            {
-                _DMWindowShadowSize = value;
-                OnPropertyChanged("DMWindowShadowSize");
-            }
-        }
-
-        private Color _DMWindowShadowColor = Color.FromArgb(255, 151, 151, 151);
-
-        [Description("窗体阴影颜色"), Category("DMSkin")]
-        public Color DMWindowShadowColor
-        {
-            get
-            {
-                return _DMWindowShadowColor;
-            }
-
-            set
-            {
-                _DMWindowShadowColor = value;
-                OnPropertyChanged("DMWindowShadowColor");
-            }
-        }
-
-
         #region 系统按钮
         private int _DMSystemButtonSize = 30;
 
-        [Description("窗体标题高度(关系到系统按钮)"), Category("DMSkin")]
+        [Description("窗体系统按钮大小"), Category("DMSkin")]
         public int DMSystemButtonSize
         {
             get
@@ -627,7 +627,25 @@ namespace DMSkin.WPF
             }
         }
 
-        private double _DMSystemButtonShadowEffect = 1;
+        private Brush _DMSystemButtonCloseHoverColor = new SolidColorBrush(Color.FromArgb(255, 255, 0, 0));
+
+        [Description("窗体系统关闭按钮鼠标悬浮背景颜色"), Category("DMSkin")]
+        public Brush DMSystemButtonCloseHoverColor
+        {
+            get
+            {
+                return _DMSystemButtonCloseHoverColor;
+            }
+
+            set
+            {
+                _DMSystemButtonCloseHoverColor = value;
+                OnPropertyChanged("DMSystemButtonCloseHoverColor");
+            }
+        }
+
+
+        private double _DMSystemButtonShadowEffect = 1.0;
         [Description("窗体控制按钮阴影大小"), Category("DMSkin")]
         public double DMSystemButtonShadowEffect
         {
@@ -660,6 +678,22 @@ namespace DMSkin.WPF
             }
         }
 
+        private Brush _DMSystemButtonHoverForeground = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+
+        [Description("窗体系统按钮鼠标悬按钮颜色"), Category("DMSkin")]
+        public Brush DMSystemButtonHoverForeground
+        {
+            get
+            {
+                return _DMSystemButtonHoverForeground;
+            }
+
+            set
+            {
+                _DMSystemButtonHoverForeground = value;
+                OnPropertyChanged("DMSystemButtonHoverForeground");
+            }
+        }
 
 
         private bool dmShowMax = true;
@@ -743,45 +777,6 @@ namespace DMSkin.WPF
         }
         #endregion
 
-        #region Metro 属性
-        private int _DMMetroBorderSize = 1;
-
-        [Description("Metro窗体边框宽度"), Category("DMSkin")]
-        public int DMMetroBorderSize
-        {
-            get
-            {
-                return _DMMetroBorderSize;
-            }
-
-            set
-            {
-                _DMMetroBorderSize = value;
-                OnPropertyChanged("DMMetroBorderSize");
-            }
-        }
-
-
-        private Brush _DMMetroBorderColor = new SolidColorBrush(Color.FromArgb(255, 0, 0, 0));
-
-        [Description("Metro窗体边框颜色"), Category("DMSkin")]
-        public Brush DMMetroBorderColor
-        {
-            get
-            {
-                return _DMMetroBorderColor;
-            }
-
-            set
-            {
-                _DMMetroBorderColor = value;
-                OnPropertyChanged("DMMetroBorderColor");
-            }
-        }
-        #endregion
-
-   
-
         private Visibility btnMinVisibility = Visibility.Visible;
         //最小化按钮显示
         public Visibility BtnMinVisibility
@@ -846,6 +841,93 @@ namespace DMSkin.WPF
             }
         }
 
+        private int _DMWindowShadowSize = 10;
+        [Description("窗体阴影大小"), Category("DMSkin")]
+        public int DMWindowShadowSize
+        {
+            get
+            {
+                if (_shadowWindow != null)
+                {
+                    return _shadowWindow.DMWindowShadowSize;
+                }
+                else
+                {
+                    return _DMWindowShadowSize;
+                }
+            }
+
+            set
+            {
+                if (_shadowWindow != null)
+                {
+                    _shadowWindow.DMWindowShadowSize = value;
+                }
+                else
+                {
+                    _DMWindowShadowSize = value;
+                }
+            }
+        }
+
+        private Color _DMWindowShadowColor = Color.FromArgb(255, 200, 200, 200);
+        [Description("窗体阴影颜色"), Category("DMSkin")]
+        public Color DMWindowShadowColor
+        {
+            get
+            {
+                if (_shadowWindow != null)
+                {
+                    return _shadowWindow.DMWindowShadowColor;
+                }
+                else
+                {
+                    return _DMWindowShadowColor;
+                }
+            }
+
+            set
+            {
+                if (_shadowWindow != null)
+                {
+                    _shadowWindow.DMWindowShadowColor = value;
+                }
+                else
+                {
+                    _DMWindowShadowColor = value;
+                }
+            }
+        }
+
+        private Brush _DMWindowShadowBackColor = new SolidColorBrush(Color.FromArgb(255, 255, 255, 255));
+        [Description("窗体阴影背景颜色"), Category("DMSkin")]
+        public Brush DMWindowShadowBackColor
+        {
+            get
+            {
+                if (_shadowWindow != null)
+                {
+                    return _shadowWindow.DMWindowShadowBackColor;
+                }
+                else
+                {
+                    return _DMWindowShadowBackColor;
+                }
+            }
+
+            set
+            {
+                if (_shadowWindow != null)
+                {
+                    _shadowWindow.DMWindowShadowBackColor = value;
+                }
+                else
+                {
+                    _DMWindowShadowBackColor = value;
+                }
+            }
+        }
         #endregion
     }
 }
+
