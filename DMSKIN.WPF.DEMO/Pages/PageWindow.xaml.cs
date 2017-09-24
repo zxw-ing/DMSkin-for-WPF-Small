@@ -1,4 +1,4 @@
-﻿using DMSkin.WPF.DEMO.Window;
+﻿using DMSkin.WPF.DEMO.Windows;
 using System;
 using System.Collections.Generic;
 using System.Linq;

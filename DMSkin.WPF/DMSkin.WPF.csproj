@@ -45,23 +45,15 @@
   <ItemGroup>
     <Compile Include="Activation\Activate.cs" />
     <Compile Include="API\HTTP.cs" />
-    <Compile Include="API\WindowMode.cs" />
     <Compile Include="Controls\ElasticWrapPanel.cs" />
     <Compile Include="Converters\ImageSourceConverter.cs" />
     <Compile Include="Converters\SizeConverter.cs" />
     <Compile Include="Converters\TreeViewLineConverter.cs" />
     <Compile Include="DMSkinWindow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ShadowWindow.xaml.cs">
-      <DependentUpon>ShadowWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Win32.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ShadowWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Themes\Animation.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -107,10 +99,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Themes\DMScrollViewer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Themes\DMSkinOne.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
