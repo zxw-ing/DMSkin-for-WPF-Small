@@ -643,6 +643,7 @@ namespace DMSkin.WPF
             set
             {
                     _DMWindowShadowSize = value;
+                    OnPropertyChanged("DMWindowShadowSize");
             }
         }
 
@@ -659,6 +660,7 @@ namespace DMSkin.WPF
             set
             {
                     _DMWindowShadowColor = value;
+                   OnPropertyChanged("DMWindowShadowColor");
             }
         }
         #endregion

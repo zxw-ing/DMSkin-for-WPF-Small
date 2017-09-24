@@ -19,7 +19,7 @@ DMSystemButtonHoverColor="#33000000"
 DMSystemButtonHoverForeground="White"
 DMSystemButtonCloseHoverColor="Red"
 DMSystemButtonShadowEffect="0" 
-DMWindowShadowColor="#FF000000" 
+DMWindowShadowColor="#88888888" 
 ResizeMode="CanResizeWithGrip" 
                      
 Height="700" Width="1000"  
