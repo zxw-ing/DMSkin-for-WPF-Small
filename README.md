@@ -1,13 +1,12 @@
-﻿# DMSkin-for-WPF 3.0
-<h3>全中国第一款WPF无边框完美方案</h3>
-<h4>基于WPF的UI框架</h4>
+# DMSkin.WPF.M 
+
+<h3>自用WPF UI无边框方案</h3>
 <h4>支持：.NET Framework 3.5 - 4.7</h4>
 <h4>支持：Windows XP - Windows 10</h4>
 <hr/>
 <h1>前言</h1>
 <img  src="https://raw.githubusercontent.com/944095635/DMSkin-for-WPF/master/图片/A.png" />
-DMSkin-for-WPF是一个基于WPF的.Net WPF开源界面库,实现了无边框的WPF开发方案,内置部分控件模板.
-你可以参照模板自行修改完善。（以下简称DFW）。
+DMSkin.WPF M 是我自己开发WPF用的UI框架，开源到github。（以下简称DFW）。
 
 <h1>核心</h1>
 DFW实现了比较完美的无边框窗体方案，并且拖拽全部采用WIN32消息实现。拖拽依靠桌面边缘完美,高DPI支持,窗体不会变形或异常
