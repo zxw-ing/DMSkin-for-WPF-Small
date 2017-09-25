@@ -9,6 +9,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using DMSkin.WPF;
 using DMSkin.WPF.Controls;
 using DMSkin.WPF.DEMO.Pages;
 using System;

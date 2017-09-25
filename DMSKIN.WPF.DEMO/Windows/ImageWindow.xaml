@@ -23,9 +23,16 @@ ResizeMode="CanResize"
 Height="600" Width="1000"  
 MinHeight="268" MinWidth="360" 
 WindowStartupLocation="CenterScreen">
-    <Border BorderThickness="0">
-        <Border.Background>
+    <Grid>
+        <Grid.Background>
             <ImageBrush ImageSource="/DMSkin.WPF.DEMO;component/Images/BG.jpg"/>
-        </Border.Background>
-    </Border>
-    </DMSkin:DMSkinWindow>
+        </Grid.Background>
+        <TreeView Foreground="White"  HorizontalAlignment="Left" Margin="50">
+                <TreeViewItem Header="剑圣">
+                <TreeViewItem Header="铁血剑豪 易"></TreeViewItem>
+                <TreeViewItem Header="斩星魔剑 易"></TreeViewItem>
+                <TreeViewItem Header="源计划-林 易 "></TreeViewItem>
+            </TreeViewItem>
+        </TreeView>
+    </Grid>
+</DMSkin:DMSkinWindow>
