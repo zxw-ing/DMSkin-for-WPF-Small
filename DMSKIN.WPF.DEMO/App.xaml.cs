@@ -5,7 +5,7 @@ using System.Data;
 using System.Linq;
 using System.Windows;
 
-namespace DMSkin.WPF.DEMO
+namespace DM_Studio
 {
     /// <summary>
     /// App.xaml 的交互逻辑

@@ -160,8 +160,8 @@ namespace DMSkin.WPF
                         WmGetMinMaxInfo(hwnd, lParam);
                         handled = true;
                     break;
-                case Win32.WM_NCHITTEST:
-                    return WmNCHitTest(lParam, ref handled);
+                //case Win32.WM_NCHITTEST:
+                //     return WmNCHitTest(lParam, ref handled);
                 //case Win32.WM_SYSCOMMAND:
                 //        if (wParam.ToInt32() == Win32.SC_MINIMIZE)//最小化消息
                 //        {
@@ -193,67 +193,6 @@ namespace DMSkin.WPF
             return IntPtr.Zero;
         }
 
-        /// <summary>  
-        /// 圆角拖动大小 
-        /// </summary>  
-        private readonly int cornerWidth = 32;
-
-        /// <summary>  
-        /// 拉伸鼠标坐标 
-        /// </summary>  
-        private Point mousePoint = new Point();
-        IntPtr HTBOTTOMRIGHT = new IntPtr((int)Win32.HitTest.HTBOTTOMRIGHT);
-        IntPtr HTRIGHT = new IntPtr((int)Win32.HitTest.HTRIGHT);
-        IntPtr HTBOTTOM = new IntPtr((int)Win32.HitTest.HTBOTTOM);
-        private IntPtr WmNCHitTest(IntPtr lParam, ref bool handled)
-        {
-            this.mousePoint.X = (int)(short)(lParam.ToInt32() & 0xFFFF);
-            this.mousePoint.Y = (int)(short)(lParam.ToInt32() >> 16);
-            if (ResizeMode == ResizeMode.CanResize || ResizeMode == ResizeMode.CanResizeWithGrip)
-            {
-                handled = true;
-                //if (Math.Abs(this.mousePoint.Y - this.Top) <= this.cornerWidth
-                //    && Math.Abs(this.mousePoint.X - this.Left) <= this.cornerWidth)
-                //{ // 左上 
-                //    return new IntPtr((int)Win32.HitTest.HTTOPLEFT);
-                //}
-                //else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= this.cornerWidth
-                //    && Math.Abs(this.mousePoint.X - this.Left) <= this.cornerWidth)
-                //{ // 左下  
-                //    return new IntPtr((int)Win32.HitTest.HTBOTTOMLEFT);
-                //}
-                //else if (Math.Abs(this.mousePoint.Y - this.Top) <= this.cornerWidth
-                //    && Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= this.cornerWidth)
-                //{ //右上
-                //    return new IntPtr((int)Win32.HitTest.HTTOPRIGHT);
-                //}
-                //else if (Math.Abs(this.mousePoint.X - this.Left) <= 30)
-                //{ // 左侧边框
-                //    return new IntPtr((int)Win32.HitTest.HTLEFT);
-                //}
-                //else if (Math.Abs(this.mousePoint.Y - this.Top) <= 30)
-                //{ // 顶部  
-                //    return new IntPtr((int)Win32.HitTest.HTTOP);
-                //}
-                if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= this.cornerWidth
-                    && Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= this.cornerWidth)
-                { // 右下 
-                    return HTBOTTOMRIGHT;
-                }
-                else if (Math.Abs(this.ActualWidth + this.Left - this.mousePoint.X) <= 24 && Math.Abs(this.mousePoint.Y - this.Top) > DMSystemButtonSize)
-                { // 右  
-                    return HTRIGHT;
-                }
-                else if (Math.Abs(this.ActualHeight + this.Top - this.mousePoint.Y) <= 24)
-                { // 底部  
-                    return HTBOTTOM;
-                }
-            }
-            handled = false;
-            return IntPtr.Zero;
-        }
-
-        //最大最小化信息
         void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
         {
             // MINMAXINFO structure  
