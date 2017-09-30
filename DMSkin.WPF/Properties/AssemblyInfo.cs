@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("DMSkin.WPF")]
+[assembly: AssemblyTitle("DMSkin-for-DMSkin-Small")]
 [assembly: AssemblyDescription("QQ944095635")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("QQ944095635")]
 [assembly: AssemblyProduct("DMSkin.WPF")]
-[assembly: AssemblyCopyright("DMSkin.WPF")]
-[assembly: AssemblyTrademark("DMSkin.WPF")]
+[assembly: AssemblyCopyright("DMSkin-for-DMSkin-Small")]
+[assembly: AssemblyTrademark("DMSkin-for-DMSkin-Small")]
 [assembly: AssemblyCulture("")]
 
 // 将 ComVisible 设置为 false 会使此程序集中的类型
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // 可以指定所有值，也可以使用以下所示的 "*" 预置版本号和修订号
 //通过使用 "*"，如下所示:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("0.0.4.0")]
-[assembly: AssemblyFileVersion("0.0.4.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

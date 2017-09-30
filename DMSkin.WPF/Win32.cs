@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace DMSkin.WPF
+namespace DMSkin.WPF.Small
 {
     public class Win32
     {

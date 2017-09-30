@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace DMSkin.WPF.API
+namespace DMSkin.WPF.Small.API
 {
     public class TreeViewLineConverter : IValueConverter
     {

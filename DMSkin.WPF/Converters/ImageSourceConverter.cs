@@ -7,7 +7,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace DMSkin.WPF.Converters
+namespace DMSkin.WPF.Small.Converters
 {
     /// <summary>
     /// 属性转换

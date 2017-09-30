@@ -1,5 +1,5 @@
 ﻿using DM_Studio.Models;
-using DMSkin.WPF;
+using DMSkin.WPF.Small;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;

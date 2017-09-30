@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:DM_Studio.Pages"
-             xmlns:control="clr-namespace:DM_Studio.Control"
-             xmlns:conv="clr-namespace:DMSkin.WPF.Converters;assembly=DMSkin.WPF"
+             xmlns:control="clr-namespace:DMSkin.WPF.Small.Controls;assembly=DMSkin.WPF.Small"
+             xmlns:conv="clr-namespace:DMSkin.WPF.Small.Converters;assembly=DMSkin.WPF.Small"
              mc:Ignorable="d" 
              d:DesignHeight="640" d:DesignWidth="850">
     <UserControl.Resources>

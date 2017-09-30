@@ -108,7 +108,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Control\ElasticWrapPanel.cs" />
     <Compile Include="Control\WaterMaskTextBox.cs" />
     <Compile Include="Converters\LocationConverters.cs" />
     <Compile Include="MainWindow.xaml.cs">
@@ -192,9 +191,9 @@
     <Resource Include="Images\BaiDuFanYi.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DMSkin.WPF\DMSkin.WPF.csproj">
+    <ProjectReference Include="..\DMSkin.WPF\DMSkin.WPF.Small.csproj">
       <Project>{168352b1-6a0c-4c9c-8a32-68b512da3cfc}</Project>
-      <Name>DMSkin.WPF</Name>
+      <Name>DMSkin.WPF.Small</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

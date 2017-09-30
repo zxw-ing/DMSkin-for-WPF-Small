@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace DMSkin.WPF.Activation
+namespace DMSkin.WPF.Small.Activation
 {
     public static class Activate
     {

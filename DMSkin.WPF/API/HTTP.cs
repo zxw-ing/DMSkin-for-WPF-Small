@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 /// <summary>
 /// DMSkin专用HTTP封装类
 /// </summary>
-namespace DMSkin.WPF
+namespace DMSkin.WPF.Small
 {
     #region 服务器配置
     public class ServicePath

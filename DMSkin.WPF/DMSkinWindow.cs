@@ -12,7 +12,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
-namespace DMSkin.WPF
+namespace DMSkin.WPF.Small
 {
     public partial class DMSkinWindow : Window, INotifyPropertyChanged
     {
@@ -56,7 +56,7 @@ namespace DMSkin.WPF
         /// </summary>
         private void InitializeWindowStyle()
         {
-            ResourceDictionary dic = new ResourceDictionary { Source = new Uri(@"/DMSkin.WPF;component/Themes/DMSkin.xaml", UriKind.Relative) };
+            ResourceDictionary dic = new ResourceDictionary { Source = new Uri(@"/DMSkin.WPF.Small;component/Themes/DMSkin.xaml", UriKind.Relative) };
             Resources.MergedDictionaries.Add(dic);
             Style = (Style)dic["MainWindow"];
             //string packUriAnimation = @"/DMSkin.WPF;component/Themes/Animation.xaml";
